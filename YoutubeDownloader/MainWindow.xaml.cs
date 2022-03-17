@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -32,6 +33,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    string saveFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+    public string SaveFolder
+    {
+        get => saveFolder;
+        set
+        {
+            saveFolder = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SaveFolder)));
+        }
+    }
+
+    bool isStopped = false;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -39,7 +53,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         log = new ObservableCollection<string>();
         Loaded += (o, e) =>
         {
-            AddItem(null, null);
             DataContext = this;
         };
     }
@@ -50,6 +63,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         Items.Add(new VideoToDownloadItem());
     }
+
 
     private async void btnConvertToMp3_Click(object sender, RoutedEventArgs e)
     {
@@ -69,42 +83,100 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         WriteLog("Начало", "Информация");
 
+        SetDisableStatus(false);
+        await Task.Delay(TimeSpan.FromSeconds(1));
+
         int total = Items.Count;
         int current = 0;
         pbIndicator.Maximum = total;
 
-        foreach (var video in Items)
+        try
         {
-            await LoadVideo(video);
+            foreach (var video in Items)
+            {
+                await LoadVideo(video);
 
-            pbIndicator.Value = ++current;
+                pbIndicator.Value = ++current;
+
+                await PauseWait();
+            }
+            pbIndicator.Value = 0;
         }
-        pbIndicator.Value = 0;
+        catch
+        {
 
-        WriteLog("Конец", "Информация");
-        
+        }
+        finally
+        {
+            WriteLog("Конец", "Информация");
+            SetDisableStatus(true);
+        }     
     }
 
-    private async Task LoadVideo(VideoToDownloadItem? video)
+    private async Task PauseWait()
     {
-        string source = video?.Uri ?? String.Empty;
-        string fileName = video?.FileName ?? string.Empty;
-        string localPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), fileName);
+        while (isStopped)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    private async Task LoadVideo(VideoToDownloadItem? item)
+    {
+        string source = item?.Uri ?? String.Empty;
+        string fileName = item?.FileName ?? string.Empty;
+        string localPath = Path.Combine(SaveFolder, fileName);
 
         try
         {
+            item.LoadStatus = LoadStatus.InProgress;
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
             var loader = new YoutubeToMp3Converter();
             await loader.SaveMP3(source, localPath);
             WriteLog(fileName + " загружен", "ОК");
+            item.LoadStatus = LoadStatus.Success;
         }
         catch (Exception ex)
         {
             WriteLog(ex.Message, "Ошибка");
+            item.LoadStatus = LoadStatus.HasErrors;
         }
     }
 
     private void WriteLog(string message, string type)
     {
-        LogItems.Add($"[{DateTime.Now}] - ({type}) - {message}"); 
+        LogItems.Insert(0, $"[{DateTime.Now}] - ({type}) - {message}"); 
+    }
+
+    private void btnPaseFromClipboard_Click(object sender, RoutedEventArgs e)
+    {
+        var lines = Clipboard.GetText()
+            .Split(new String[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(ar => ar.Split('\t'))
+            .Select(line => new VideoToDownloadItem()
+            {
+                Uri = line[0],
+                FileName = line[1]
+            })
+            .ToList();
+
+        lines.ForEach(l => Items.Add(l));
+
+        MessageBox.Show($"Вставлено {lines.Count} строк", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+
+    }
+
+    private void btnStopContinue_Click(object sender, RoutedEventArgs e)
+    {
+        WriteLog(isStopped ? "Возобновлено" : "Пауза", "Информация");
+        isStopped = !isStopped;        
+    }
+    
+    private void SetDisableStatus(bool status)
+    {
+        btnAddVideo.IsEnabled = status;
+        btnConvertToMp3.IsEnabled = status;
+        btnPaseFromClipboard.IsEnabled = status;
+        itemsControl.IsEnabled = status;
     }
 }

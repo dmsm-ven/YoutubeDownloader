@@ -7,51 +7,104 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="373" Width="626">
     <Window.Resources>
-        <local:BoolToFillColorConverter x:Key="BoolToFillColorConverter"/>
+        <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
     </Window.Resources>
-    <DockPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
 
-        <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}" DockPanel.Dock="Top">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray" Margin="2 2 2 6">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                            <Ellipse Grid.Column="0" Margin="4 4 8 4" 
-                                 Fill="{Binding IsFinished, Converter={StaticResource BoolToFillColorConverter}}"
-                                 StrokeThickness="1"
-                                 Width="28" Height="28"
-                                 Stroke="LightGray" />
-                            <TextBlock Grid.Column="1" Text="URL видео" Margin="2"/>
-                        <TextBox Grid.Column="2" Text="{Binding Uri}" Margin="2" Height="20"/>
-                        <TextBlock Grid.Column="3" Text="Имя файла" Margin="2"/>
-                        <TextBox Grid.Column="4" Text="{Binding FileName}"  Margin="2" Height="20"/>
-                    </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <Button x:Name="btnAddVideo" HorizontalAlignment="Left" Width="42" Height="42" DockPanel.Dock="Top"
-                Click="AddItem"
-                Background="Transparent"
-                Foreground="Green"
-                FontWeight="Bold"
-                BorderBrush="Transparent"
-                Margin="2" FontSize="32">
-            &#x2b;
-        </Button>
-
-        <Button Grid.Row="2" x:Name="btnConvertToMp3" Content="Download and Convert to mp3" DockPanel.Dock="Top"
-                Grid.ColumnSpan="2"
-                Margin="2" Height="24" Click="btnConvertToMp3_Click"/>
-        <ProgressBar x:Name="pbIndicator" Height="24"  Grid.Row="3" Grid.ColumnSpan="2" Margin="2" DockPanel.Dock="Top"/>
-        <ListBox Foreground="Yellow" Background="DarkBlue" ItemsSource="{Binding LogItems}" Margin="2"></ListBox>
-    </DockPanel>
+        <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <TextBlock Text="Папка для сохранения" Margin="4 2 12 4" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtSaveFolder" Margin="2"  Height="24" Text="{Binding SaveFolder, UpdateSourceTrigger=PropertyChanged}"/>
+        </DockPanel>
+        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <DockPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Padding" Value="8 2"/>
+                    <Setter Property="Margin" Value="2"/>
+                    <Setter Property="Foreground" Value="Navy"/>
+                    <Setter Property="FontWeight" Value="Medium"/>
+                    <Setter Property="Background" Value="WhiteSmoke"/>
+                    <Setter Property="BorderBrush" Value="LightGray"/>
+                </Style>
+            </DockPanel.Resources>
+            <Button x:Name="btnAddVideo" Click="AddItem" Background="Transparent" BorderBrush="Transparent">
+                <Image Width="24" Height="24" Source="plus.png"></Image>
+            </Button>
+            <Button x:Name="btnConvertToMp3" Content="Download and Convert to mp3" Click="btnConvertToMp3_Click" />
+            <Button x:Name="btnPaseFromClipboard" Content="Pase From Clipbord" Click="btnPaseFromClipboard_Click" />
+            <Button x:Name="btnStopContinue" Content="Stop/Continue" Click="btnStopContinue_Click" />
+        </DockPanel>
+        <ProgressBar x:Name="pbIndicator" Height="24"  Margin="2"
+                      Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <ListBox Foreground="Yellow" 
+                 Grid.Row="3" Grid.Column="1"
+                 Background="DarkBlue" ItemsSource="{Binding LogItems}" Margin="2"></ListBox>
+        
+        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
+                      Margin="2"
+                      Background="WhiteSmoke"
+                      Grid.Row="3" Grid.Column="0">
+            <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="0 0 0 1" BorderBrush="LightGray" Margin="2 2 2 6" Padding="2 2 2 4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Grid.Column="0" Margin="2" 
+                                     Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
+                                     StrokeThickness="1"
+                                     Width="20" Height="20"
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Center"
+                                     Stroke="LightGray">
+                                    <Ellipse.Style>
+                                        <Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LoadStatus}" Value="InProgress">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetProperty='Opacity' From='0' To='1' Duration='0:0:1' 
+                                                                                 AutoReverse='True' RepeatBehavior='Forever' />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard FillBehavior='Stop'>
+                                                                <DoubleAnimation Storyboard.TargetProperty='Opacity' To='1' Duration='0:0:1' />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock Grid.Column="1" Text="URL видео" Margin="12 2 2 2" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="2" Text="{Binding Uri}" Margin="2" Height="20"/>
+                                <TextBlock Grid.Column="3" Text="Имя файла" Margin="12 2 2 2" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="4" Text="{Binding FileName}"  Margin="2" Height="20"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
 </Window>

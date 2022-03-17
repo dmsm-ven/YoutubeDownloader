@@ -6,14 +6,14 @@ public class VideoToDownloadItem : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    bool isLoaded;
-    public bool IsLoaded
+    LoadStatus loadStatus;
+    public LoadStatus LoadStatus
     {
-        get => isLoaded;
+        get => loadStatus;
         set
         {
-            isLoaded = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoaded)));
+            loadStatus = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LoadStatus)));
         }
     }
 

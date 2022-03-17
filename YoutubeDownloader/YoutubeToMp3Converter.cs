@@ -25,23 +25,21 @@ public class YoutubeToMp3Converter
         }
         var youtube = YouTube.Default;
         var vid = youtube.GetVideo(uri);
-
         string tmpFile = Path.GetTempFileName();
+        var inputFile = new MediaFile { Filename = tmpFile };
+        var outputFile = new MediaFile { Filename = localpath };
+
         try
         {
-            await Task.Run(() => File.WriteAllBytes(tmpFile, vid.GetBytes()));
-
-            var inputFile = new MediaFile { Filename = tmpFile };
-            var outputFile = new MediaFile { Filename = localpath };
-
-            using (var engine = new Engine())
+            await Task.Run(() =>
             {
-                await Task.Run(() =>
+                File.WriteAllBytes(tmpFile, vid.GetBytes());
+                using (var engine = new Engine())
                 {
                     engine.GetMetadata(inputFile);
                     engine.Convert(inputFile, outputFile);
-                });
-            }
+                }
+            });
         }
         catch
         {
