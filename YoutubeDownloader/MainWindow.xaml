@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:YoutubeDownloader"
         mc:Ignorable="d"
-        Title="MainWindow" Height="373" Width="626">
+        Title="Youtube to MP3" Height="460" Width="626">
     <Window.Resources>
         <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
     </Window.Resources>
@@ -14,12 +14,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="100"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="2*"/>
-        </Grid.ColumnDefinitions>
 
         <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
             <TextBlock Text="Папка для сохранения" Margin="4 2 12 4" VerticalAlignment="Center"/>
@@ -46,14 +43,14 @@
         <ProgressBar x:Name="pbIndicator" Height="24"  Margin="2"
                       Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"/>
         <ListBox Foreground="Yellow" 
-                 Grid.Row="3" Grid.Column="1"
+                 Grid.Row="3" 
                  Background="DarkBlue" ItemsSource="{Binding LogItems}" Margin="2"></ListBox>
         
         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
                       Margin="2"
                       Background="WhiteSmoke"
-                      Grid.Row="3" Grid.Column="0">
-            <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}">
+                      Grid.Row="4" >
+            <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}" BorderBrush="Navy" BorderThickness="1">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderThickness="0 0 0 1" BorderBrush="LightGray" Margin="2 2 2 6" Padding="2 2 2 4">
@@ -61,9 +58,10 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="200"/>
                                 </Grid.ColumnDefinitions>
                                 <Ellipse Grid.Column="0" Margin="2" 
                                      Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
@@ -100,6 +98,8 @@
                                 <TextBox Grid.Column="2" Text="{Binding Uri}" Margin="2" Height="20"/>
                                 <TextBlock Grid.Column="3" Text="Имя файла" Margin="12 2 2 2" VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="4" Text="{Binding FileName}"  Margin="2" Height="20"/>
+                                <ProgressBar Grid.Column="5" Margin="2" Height="20" Minimum="0" Maximum="100"
+                                             Value="{Binding ProgressPercentage}"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

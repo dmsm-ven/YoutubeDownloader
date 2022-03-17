@@ -12,6 +12,8 @@ namespace YoutubeDownloader;
 /// </summary>
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
+    YoutubeToMp3Converter loader;
+
     ObservableCollection<VideoToDownloadItem> items;
     public ObservableCollection<VideoToDownloadItem> Items
     {
@@ -51,6 +53,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         InitializeComponent();
         Items = new ObservableCollection<VideoToDownloadItem>();
         log = new ObservableCollection<string>();
+        loader = new YoutubeToMp3Converter();
         Loaded += (o, e) =>
         {
             DataContext = this;
@@ -64,25 +67,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Items.Add(new VideoToDownloadItem());
     }
 
-
     private async void btnConvertToMp3_Click(object sender, RoutedEventArgs e)
     {
-        bool isCancel = false;
-        foreach(var item in Items)
-        {
-            if (string.IsNullOrWhiteSpace(item.Uri) || !item.Uri.StartsWith("https://www.youtube.com") || string.IsNullOrWhiteSpace(item.FileName))
-            {
-                isCancel = true;
-            }
-        }
-        if (isCancel)
-        {
-            MessageBox.Show("Не все данные заполнены", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
         WriteLog("Начало", "Информация");
-
         SetDisableStatus(false);
         await Task.Delay(TimeSpan.FromSeconds(1));
 
@@ -94,7 +81,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             foreach (var video in Items)
             {
-                await LoadVideo(video);
+                await LoadVideoItem(video);
 
                 pbIndicator.Value = ++current;
 
@@ -113,15 +100,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }     
     }
 
-    private async Task PauseWait()
-    {
-        while (isStopped)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(3));
-        }
-    }
-
-    private async Task LoadVideo(VideoToDownloadItem? item)
+    private async Task LoadVideoItem(VideoToDownloadItem? item)
     {
         string source = item?.Uri ?? String.Empty;
         string fileName = item?.FileName ?? string.Empty;
@@ -131,8 +110,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             item.LoadStatus = LoadStatus.InProgress;
             await Task.Delay(TimeSpan.FromSeconds(0.5));
-            var loader = new YoutubeToMp3Converter();
-            await loader.SaveMP3(source, localPath);
+            
+            await loader.SaveMP3(source, localPath, new Progress<int>(v => item.ProgressPercentage = v));
+
             WriteLog(fileName + " загружен", "ОК");
             item.LoadStatus = LoadStatus.Success;
         }
@@ -143,6 +123,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    private async Task PauseWait()
+    {
+        while (isStopped)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
     private void WriteLog(string message, string type)
     {
         LogItems.Insert(0, $"[{DateTime.Now}] - ({type}) - {message}"); 

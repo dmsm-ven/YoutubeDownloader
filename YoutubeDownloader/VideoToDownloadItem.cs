@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace YoutubeDownloader;
 
@@ -13,7 +14,7 @@ public class VideoToDownloadItem : INotifyPropertyChanged
         set
         {
             loadStatus = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LoadStatus)));
+            RaisePropertyChanged();
         }
     }
 
@@ -24,7 +25,7 @@ public class VideoToDownloadItem : INotifyPropertyChanged
         set
         {
             uri = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Uri)));
+            RaisePropertyChanged();
         }
     }
 
@@ -35,7 +36,23 @@ public class VideoToDownloadItem : INotifyPropertyChanged
         set
         {
             fileName = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FileName)));
+            RaisePropertyChanged();
         }
+    }
+
+    int progressPercentage;
+    public int ProgressPercentage
+    {
+        get => progressPercentage;
+        set
+        {
+            progressPercentage = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    private void RaisePropertyChanged([CallerMemberName]string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
