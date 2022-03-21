@@ -1,11 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using YoutubeDownloader.Infrastructure.Commands;
 
 namespace YoutubeDownloader;
 
 public class YoutubeDownloadItem : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public event Action OnRemoveClicked;
 
     LoadStatus loadStatus;
     public LoadStatus LoadStatus
@@ -27,6 +32,7 @@ public class YoutubeDownloadItem : INotifyPropertyChanged
         {
             uri = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsValidUri));
         }
     }
 
@@ -52,7 +58,6 @@ public class YoutubeDownloadItem : INotifyPropertyChanged
             RaisePropertyChanged(nameof(ProgressStatus));
         }
     }
-
     public string ProgressStatus
     {
         get
@@ -72,9 +77,16 @@ public class YoutubeDownloadItem : INotifyPropertyChanged
             return string.Empty;
         }
     }
-
     private void RaisePropertyChanged([CallerMemberName]string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    public ICommand RemoveItemCommand { get; }
+    public YoutubeDownloadItem()
+    {
+        RemoveItemCommand = new LambdaCommand((e) => OnRemoveClicked?.Invoke(), e => true);
+    }
+
+    public bool IsValidUri => !string.IsNullOrWhiteSpace(Uri) && uri.StartsWith("https://www.youtube.com");
 }

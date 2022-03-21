@@ -41,7 +41,7 @@ public class MainWindowViewModel : ViewModelBase
         set => Set(ref saveFolder, value);
     }
 
-    bool? inProgress = false;
+    bool? inProgress = null;
     public bool? InProgress
     {
         get => inProgress;
@@ -92,13 +92,18 @@ public class MainWindowViewModel : ViewModelBase
             Items.FirstOrDefault(i => i.Uri == e.Uri).LoadStatus = e.Status;
         };
 
-        AddItemCommand = new LambdaCommand(AddItem, e => InProgress.HasValue ? !InProgress.Value : true);
-        StartCommand = new LambdaCommand(Start, e => (InProgress.HasValue ? !InProgress.Value : true) && Items.Count > 0);
+        AddItemCommand = new LambdaCommand((e) => AddItem(), e => InProgress.HasValue ? !InProgress.Value : true);
+        StartCommand = new LambdaCommand(Start, CanStart);
         PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => (InProgress.HasValue ? !InProgress.Value : false));
         TogglePauseStatusCommand = new LambdaCommand((e) => {
             InProgress = !InProgress.Value;
             WriteLog((InProgress.Value ? "Пауза" : "Продолжено"), "Информация"); 
         }, e => InProgress.HasValue && Items.Count > 0);      
+    }
+
+    private bool CanStart(object arg)
+    {
+        return (InProgress.HasValue ? !InProgress.Value : true) && Items.Count > 0 && Items.Any(i => i.IsValidUri);
     }
     private async void Start(object sender)
     {
@@ -119,8 +124,9 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         WriteLog("Конец", "Информация");
-        InProgress = false;
+        InProgress = null;
         CurrentProgressValue = MaximumProgressValue;
+        CommandManager.InvalidateRequerySuggested();
     }
     private void Loader_DownloadPercentChanged(object? sender, int e)
     {
@@ -140,25 +146,30 @@ public class MainWindowViewModel : ViewModelBase
     {
         LogItems.Insert(0, $"[{DateTime.Now}] ({type}) - {message}");
     }
-    public void AddItem(object sender)
+    public void AddItem(string uri = null, string fileName = null)
     {
-        Items.Add(new YoutubeDownloadItem());
+        var item = new YoutubeDownloadItem()
+        {
+            FileName = fileName,
+            Uri = uri
+        };
+        item.OnRemoveClicked += () => Items.Remove(item);
+        Items.Add(item);
     }
     private void PasteFromClipboard(object sender)
     {
         var lines = Clipboard.GetText()
             .Split(new String[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
             .Select(ar => ar.Split('\t'))
-            .Select(line => new YoutubeDownloadItem()
+            .Select(line => new
             {
                 Uri = line[0],
                 FileName = line[1]
             })
             .ToList();
 
-        lines.ForEach(l => Items.Add(l));
+        lines.ForEach(l => AddItem(l.Uri, l.FileName));
 
         MessageBox.Show($"Вставлено {lines.Count} строк", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-
     }
 }

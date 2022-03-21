@@ -5,12 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:YoutubeDownloader.ViewModels"
         xmlns:local="clr-namespace:YoutubeDownloader"
+        xmlns:ma="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
         MinWidth="500"
         d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=False}" 
-        Title="Youtube to MP3" Height="460" Width="626">
+        Title="Youtube to MP3" Height="309" Width="626">
     <Window.Resources>
         <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -29,38 +31,41 @@
         <Grid Grid.Row="1">
             <Grid.Resources>
                 <Style TargetType="Button">
-                    <Setter Property="Padding" Value="8 2"/>
+                    <Setter Property="Padding" Value="4"/>
                     <Setter Property="Margin" Value="2"/>
                     <Setter Property="Foreground" Value="Navy"/>
                     <Setter Property="FontWeight" Value="Medium"/>
-                    <Setter Property="Background" Value="WhiteSmoke"/>
-                    <Setter Property="BorderBrush" Value="LightGray"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="LightBlue"/>
+                </Style>
+                <Style TargetType="{x:Type ma:PackIconFontAwesome}">
+                    <Setter Property="Width" Value="24"/>
+                    <Setter Property="Height" Value="24"/>
                 </Style>
             </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <Button Command="{Binding AddItemCommand}"
-                    Grid.Column="0"
-                    Background="Transparent" BorderBrush="Transparent">
-                Add link
+
+            <Button Command="{Binding AddItemCommand}" Grid.Column="0">
+                <ma:PackIconFontAwesome Kind="LinkSolid"></ma:PackIconFontAwesome>
             </Button>
-            <Button Command="{Binding PasteFromClipboardCommand}"
-                    Grid.Column="1"
-                    Content="From Clipbord" />
-            <Button Command="{Binding StartCommand}"
-                    Grid.Column="2"
-                    Content="Start" />
-            <Button Command="{Binding TogglePauseStatusCommand}"
-                    Grid.Column="3"
-                    Content="Stop/Continue" />
+            <Button Command="{Binding PasteFromClipboardCommand}" Grid.Column="1">
+                <ma:PackIconFontAwesome Kind="KeyboardRegular"></ma:PackIconFontAwesome>
+            </Button>
+            <Button Command="{Binding StartCommand}" Grid.Column="2">
+                <ma:PackIconFontAwesome Kind="PlayCircleRegular"></ma:PackIconFontAwesome>
+            </Button>
+            <Button Command="{Binding TogglePauseStatusCommand}" Grid.Column="3">
+                <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
+            </Button>
         </Grid>
         <ProgressBar Grid.Row="2" Height="24"  Margin="2" 
                      Minimum="0"
+                     Visibility="{Binding InProgress, Converter={StaticResource BoolToVisibilityConverter}}"
                      Value="{Binding CurrentProgressValue}"
                      Maximum="{Binding MaximumProgressValue}" />
         <ScrollViewer Grid.Row="3"  
@@ -79,7 +84,9 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
+                                
                                 <Ellipse Grid.Column="0" Margin="2" 
                                      Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
                                      StrokeThickness="1"
@@ -124,6 +131,14 @@
                                                FontSize="12"
                                                Foreground="Blue"></TextBlock>
                                 </Grid>
+                                <Button Command="{Binding RemoveItemCommand}" Grid.Column="6" 
+                                        Background="Transparent" 
+                                        BorderThickness="0">
+                                    <ma:PackIconFontAwesome Kind="TimesCircleRegular" 
+                                                        Width="20"
+                                                        Height="20"
+                                                        Foreground="Red"></ma:PackIconFontAwesome>
+                                </Button>
 
                             </Grid>
                         </Border>
