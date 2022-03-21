@@ -3,8 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:YoutubeDownloader.ViewModels"
         xmlns:local="clr-namespace:YoutubeDownloader"
         mc:Ignorable="d"
+        MinWidth="500"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=False}" 
         Title="Youtube to MP3" Height="460" Width="626">
     <Window.Resources>
         <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
@@ -14,16 +17,17 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="100"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+        <DockPanel Grid.Row="0">
             <TextBlock Text="Папка для сохранения" Margin="4 2 12 4" VerticalAlignment="Center"/>
             <TextBox x:Name="txtSaveFolder" Margin="2"  Height="24" Text="{Binding SaveFolder, UpdateSourceTrigger=PropertyChanged}"/>
         </DockPanel>
-        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-            <DockPanel.Resources>
+        <Grid Grid.Row="1">
+            <Grid.Resources>
                 <Style TargetType="Button">
                     <Setter Property="Padding" Value="8 2"/>
                     <Setter Property="Margin" Value="2"/>
@@ -32,24 +36,37 @@
                     <Setter Property="Background" Value="WhiteSmoke"/>
                     <Setter Property="BorderBrush" Value="LightGray"/>
                 </Style>
-            </DockPanel.Resources>
-            <Button x:Name="btnAddVideo" Click="AddItem" Background="Transparent" BorderBrush="Transparent">
-                <Image Width="24" Height="24" Source="plus.png"></Image>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Command="{Binding AddItemCommand}"
+                    Grid.Column="0"
+                    Background="Transparent" BorderBrush="Transparent">
+                Add link
             </Button>
-            <Button x:Name="btnConvertToMp3" Content="Download and Convert to mp3" Click="btnConvertToMp3_Click" />
-            <Button x:Name="btnPaseFromClipboard" Content="Pase From Clipbord" Click="btnPaseFromClipboard_Click" />
-            <Button x:Name="btnStopContinue" Content="Stop/Continue" Click="btnStopContinue_Click" />
-        </DockPanel>
-        <ProgressBar x:Name="pbIndicator" Height="24"  Margin="2"
-                      Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"/>
-        <ListBox Foreground="Yellow" 
-                 Grid.Row="3" 
-                 Background="DarkBlue" ItemsSource="{Binding LogItems}" Margin="2"></ListBox>
-        
-        <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
+            <Button Command="{Binding PasteFromClipboardCommand}"
+                    Grid.Column="1"
+                    Content="From Clipbord" />
+            <Button Command="{Binding StartCommand}"
+                    Grid.Column="2"
+                    Content="Start" />
+            <Button Command="{Binding TogglePauseStatusCommand}"
+                    Grid.Column="3"
+                    Content="Stop/Continue" />
+        </Grid>
+        <ProgressBar Grid.Row="2" Height="24"  Margin="2" 
+                     Minimum="0"
+                     Value="{Binding CurrentProgressValue}"
+                     Maximum="{Binding MaximumProgressValue}" />
+        <ScrollViewer Grid.Row="3"  
+                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
                       Margin="2"
-                      Background="WhiteSmoke"
-                      Grid.Row="4" >
+                      Background="WhiteSmoke">
             <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}" BorderBrush="Navy" BorderThickness="1">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -60,8 +77,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="200"/>
-                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="150"/>
                                 </Grid.ColumnDefinitions>
                                 <Ellipse Grid.Column="0" Margin="2" 
                                      Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
@@ -98,13 +115,32 @@
                                 <TextBox Grid.Column="2" Text="{Binding Uri}" Margin="2" Height="20"/>
                                 <TextBlock Grid.Column="3" Text="Имя файла" Margin="12 2 2 2" VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="4" Text="{Binding FileName}"  Margin="2" Height="20"/>
-                                <ProgressBar Grid.Column="5" Margin="2" Height="20" Minimum="0" Maximum="100"
+                                <Grid Grid.Column="5">
+                                    <ProgressBar  Margin="2" Height="20" Minimum="0" Maximum="100"
                                              Value="{Binding ProgressPercentage}"/>
+                                    <TextBlock Text="{Binding ProgressStatus}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Foreground="Blue"></TextBlock>
+                                </Grid>
+
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <GridSplitter Grid.Row="4" Background="DarkGray" Height="2" 
+                      Margin="0 2 0 2"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"></GridSplitter>
+        <ListBox Grid.Column="1" Grid.RowSpan="4" Grid.Row="5" 
+                 MinHeight="25"
+                 Foreground="Yellow"     
+                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                 Background="DarkBlue" ItemsSource="{Binding LogItems}" 
+                 Margin="2"/>
     </Grid>
 </Window>

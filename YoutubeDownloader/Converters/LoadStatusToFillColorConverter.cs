@@ -9,21 +9,24 @@ public class LoadStatusToFillColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if(value is LoadStatus s)
+        if (value is LoadStatus s)
         {
             switch (s)
             {
                 case LoadStatus.None:
                     return Brushes.Transparent;
 
-                case LoadStatus.Success: 
-                    return Brushes.GreenYellow;
+                case LoadStatus.Success:
+                    return Brushes.ForestGreen;
 
-                case LoadStatus.InProgress:
+                case LoadStatus.Downloading:
+                    return Brushes.Silver;
+
+                case LoadStatus.Converting:
                     return Brushes.Silver;
 
                 case LoadStatus.HasErrors:
-                    return Brushes.Red;
+                    return Brushes.Olive;
             }
         }
 

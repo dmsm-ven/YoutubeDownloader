@@ -11,12 +11,23 @@ namespace YoutubeDownloader;
 
 public class YoutubeToMp3Converter
 {
-    public YoutubeToMp3Converter()
+    public event EventHandler<YoutubeConverterStatusChangedArgs> ItemStatusChanged;
+    public event EventHandler<int> DownloadPercentChanged;
+
+    public async Task DownloadAndConvert(string youtubeUri, string localPath)
     {
-
+        try
+        {
+            
+            await SaveMP3(youtubeUri, localPath);
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Success, $"Выполнено", youtubeUri, localPath));
+        }
+        catch (Exception ex)
+        {
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.HasErrors, $"Ошибка выполнения: {ex.Message}", youtubeUri, localPath));
+        }
     }
-
-    public async Task SaveMP3(string uri, string localpath, IProgress<int> progress)
+    private async Task SaveMP3(string uri, string localpath)
     {
         var source = Path.GetDirectoryName(localpath);
         if (!Path.GetExtension(localpath).Equals(".mp3"))
@@ -29,10 +40,13 @@ public class YoutubeToMp3Converter
 
         try
         {
-            await DownloadSource(vid, tmpFile, progress);
-            await ConvertToMp3(tmpFile, localpath);
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Downloading, $"Начало скачивания", uri, localpath));
+            await DownloadSource(vid, tmpFile);
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Downloading, $"Конец скачивания", uri, localpath));
 
-            progress?.Report(100);
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Converting, $"Начало конвертации", uri, localpath));
+            await ConvertToMp3(tmpFile, localpath);
+            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Converting, $"Конец конвертации", uri, localpath));
         }
         catch
         {
@@ -43,31 +57,17 @@ public class YoutubeToMp3Converter
             File.Delete(tmpFile);
         }
     }
-
-    private async Task DownloadSource(YouTubeVideo videoInfo, string tmpFile, IProgress<int> progress)
+    private async Task DownloadSource(YouTubeVideo videoInfo, string tmpFile)
     {
-        var buffer = new Memory<byte>(new byte[4096]);
-        long readedBytes = 0;
-        long? totalBytes = videoInfo.ContentLength;
-
-        using(var fs = new FileStream(tmpFile, FileMode.CreateNew))
+        using(var wc = new WebClient())
         {
-            using (var remoteStream = await videoInfo.StreamAsync())
+            wc.DownloadProgressChanged += (o, e) =>
             {
-                while (readedBytes < totalBytes)
-                {
-                    var readed = await remoteStream.ReadAsync(buffer);
-                    readedBytes += readed;
-                    await fs.WriteAsync(buffer);
-
-                    int progressPercent = (int)(((double)readedBytes / totalBytes) * 100);
-                    progress?.Report(progressPercent);
-                }
-                progress?.Report(100);
-            }
+                DownloadPercentChanged?.Invoke(this, e.ProgressPercentage);
+            };
+            await wc.DownloadFileTaskAsync(videoInfo.Uri, tmpFile);
         }
     }
-
     private async Task ConvertToMp3(string tmpFile, string localpath)
     {
         var inputFile = new MediaFile { Filename = tmpFile };
@@ -82,6 +82,4 @@ public class YoutubeToMp3Converter
             }
         });
     }
-
-
 }

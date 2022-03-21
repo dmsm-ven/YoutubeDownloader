@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace YoutubeDownloader;
 
-public class VideoToDownloadItem : INotifyPropertyChanged
+public class YoutubeDownloadItem : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -15,6 +15,7 @@ public class VideoToDownloadItem : INotifyPropertyChanged
         {
             loadStatus = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(ProgressStatus));
         }
     }
 
@@ -48,6 +49,27 @@ public class VideoToDownloadItem : INotifyPropertyChanged
         {
             progressPercentage = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(ProgressStatus));
+        }
+    }
+
+    public string ProgressStatus
+    {
+        get
+        {
+            if (LoadStatus == LoadStatus.Downloading)
+            {
+                return $"Загрузка видео: {ProgressPercentage}%";
+            }
+            if (LoadStatus == LoadStatus.Converting)
+            {
+                return $"Конвертация MP4 -> MP3";
+            }
+            if (LoadStatus == LoadStatus.HasErrors)
+            {
+                return $"Ошибка загрузки";
+            }
+            return string.Empty;
         }
     }
 
