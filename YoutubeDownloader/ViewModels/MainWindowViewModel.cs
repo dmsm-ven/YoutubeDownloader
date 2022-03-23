@@ -45,7 +45,14 @@ public class MainWindowViewModel : ViewModelBase
     public bool? InProgress
     {
         get => inProgress;
-        set => Set(ref inProgress, value);
+        set
+        {
+            Set(ref inProgress, value);
+            if (inProgress.HasValue)
+            {
+                loader.Paused = !inProgress.Value;
+            }
+        }
     }
 
     int maximumProgressValue = 1;
@@ -64,7 +71,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public ICommand AddItemCommand { get; }
     public ICommand StartCommand { get; }
-    public ICommand TogglePauseStatusCommand { get; }
+    public ICommand StopCommand { get; }
     public ICommand PasteFromClipboardCommand { get; }
 
     public MainWindowViewModel()
@@ -94,38 +101,45 @@ public class MainWindowViewModel : ViewModelBase
 
         AddItemCommand = new LambdaCommand((e) => AddItem(), e => InProgress.HasValue ? !InProgress.Value : true);
         StartCommand = new LambdaCommand(Start, CanStart);
-        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => (InProgress.HasValue ? !InProgress.Value : false));
-        TogglePauseStatusCommand = new LambdaCommand((e) => {
-            InProgress = !InProgress.Value;
-            WriteLog((InProgress.Value ? "Пауза" : "Продолжено"), "Информация"); 
-        }, e => InProgress.HasValue && Items.Count > 0);      
+        StopCommand = new LambdaCommand((e) => {
+            InProgress = false;
+            WriteLog("Пауза", "Информация"); 
+        }, e => Items.Count > 0 && InProgress == true);    
+        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => (InProgress.HasValue ? !InProgress.Value : false));         
     }
 
     private bool CanStart(object arg)
     {
-        return (InProgress.HasValue ? !InProgress.Value : true) && Items.Count > 0 && Items.Any(i => i.IsValidUri);
+        return Items.Count > 0 && Items.Any(i => i.IsValidUri) && (InProgress != true);
     }
     private async void Start(object sender)
     {
-        WriteLog("Начало", "Информация");
-        InProgress = true;
-        MaximumProgressValue = Items.Count;
-        CurrentProgressValue = 0;
-
-        foreach (var item in Items)
+        if (InProgress.HasValue && !InProgress.Value)
         {
-            ActiveItem = item;
-            string localPath = Path.Combine(SaveFolder, item.FileName);
-          
-            await loader.DownloadAndConvert(item.Uri, localPath);
-
-            CurrentProgressValue++;
-            await PauseWait();
+            WriteLog("Продолжено", "Информация");
+            InProgress = true;
         }
+        else
+        {
+            WriteLog("Начало", "Информация");
+            InProgress = true;
+            MaximumProgressValue = Items.Count;
+            CurrentProgressValue = 0;
 
-        WriteLog("Конец", "Информация");
-        InProgress = null;
-        CurrentProgressValue = MaximumProgressValue;
+            foreach (var item in Items)
+            {
+                ActiveItem = item;
+                string localPath = Path.Combine(SaveFolder, item.FileName);
+
+                await loader.DownloadAndConvert(item.Uri, localPath);
+
+                CurrentProgressValue++;
+            }
+
+            WriteLog("Конец", "Информация");
+            InProgress = null;
+            CurrentProgressValue = MaximumProgressValue;
+        }
         CommandManager.InvalidateRequerySuggested();
     }
     private void Loader_DownloadPercentChanged(object? sender, int e)
@@ -133,13 +147,6 @@ public class MainWindowViewModel : ViewModelBase
         if (ActiveItem != null)
         {
             ActiveItem.ProgressPercentage = e;
-        }
-    }
-    private async Task PauseWait()
-    {
-        while (InProgress.HasValue && !InProgress.Value)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(1.5));
         }
     }
     private void WriteLog(string message, string type)

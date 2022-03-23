@@ -59,7 +59,7 @@
             <Button Command="{Binding StartCommand}" Grid.Column="2">
                 <ma:PackIconFontAwesome Kind="PlayCircleRegular"></ma:PackIconFontAwesome>
             </Button>
-            <Button Command="{Binding TogglePauseStatusCommand}" Grid.Column="3">
+            <Button Command="{Binding StopCommand}" Grid.Column="3">
                 <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
             </Button>
         </Grid>

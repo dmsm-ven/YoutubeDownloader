@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using VideoLibrary;
 
@@ -11,6 +12,8 @@ namespace YoutubeDownloader;
 
 public class YoutubeToMp3Converter
 {
+    public bool Paused { get; set; }
+
     public event EventHandler<YoutubeConverterStatusChangedArgs> ItemStatusChanged;
     public event EventHandler<int> DownloadPercentChanged;
 
@@ -40,13 +43,13 @@ public class YoutubeToMp3Converter
 
         try
         {
+            await PauseWait();
+
             ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Downloading, $"Начало скачивания", uri, localpath));
             await DownloadSource(vid, tmpFile);
-            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Downloading, $"Конец скачивания", uri, localpath));
 
             ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Converting, $"Начало конвертации", uri, localpath));
             await ConvertToMp3(tmpFile, localpath);
-            ItemStatusChanged?.Invoke(this, new YoutubeConverterStatusChangedArgs(LoadStatus.Converting, $"Конец конвертации", uri, localpath));
         }
         catch
         {
@@ -81,5 +84,12 @@ public class YoutubeToMp3Converter
                 engine.Convert(inputFile, outputFile);
             }
         });
+    }
+    private async Task PauseWait()
+    {
+        while (Paused)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
     }
 }
