@@ -34,6 +34,13 @@ public class MainWindowViewModel : ViewModelBase
         set => Set(ref activeItem, value);
     }
 
+    bool isKeyboardBufferContainsYoutubeUrl = false;
+    public bool IsKeyboardBufferContainsYoutubeUrl
+    {
+        get => isKeyboardBufferContainsYoutubeUrl;
+        set => Set(ref isKeyboardBufferContainsYoutubeUrl, value);
+    }
+
     string saveFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
     public string SaveFolder
     {
@@ -73,6 +80,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand StartCommand { get; }
     public ICommand StopCommand { get; }
     public ICommand PasteFromClipboardCommand { get; }
+    public ICommand ClearAllCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -105,7 +113,19 @@ public class MainWindowViewModel : ViewModelBase
             InProgress = false;
             WriteLog("Пауза", "Информация"); 
         }, e => Items.Count > 0 && InProgress == true);    
-        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true);         
+        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true && IsKeyboardBufferContainsYoutubeUrl);
+        ClearAllCommand = new LambdaCommand(ClearAll, e => InProgress != true && Items.Count > 0);
+
+        ApplicationCommands.Paste.CanExecuteChanged += (o, e) =>
+        {
+            IsKeyboardBufferContainsYoutubeUrl = Clipboard.GetText().Contains("https://www.youtube.com");
+            CommandManager.InvalidateRequerySuggested();
+        };
+    }
+
+    private void ClearAll(object obj)
+    {
+        Items.Clear();
     }
 
     private bool CanStart(object arg)
@@ -168,10 +188,11 @@ public class MainWindowViewModel : ViewModelBase
         var lines = Clipboard.GetText()
             .Split(new String[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries)
             .Select(ar => ar.Split('\t'))
+            .Where(ar => ar.Length >= 1)
             .Select(line => new
             {
                 Uri = line[0],
-                FileName = line[1]
+                FileName = line.Length > 1 ? line[1] : String.Empty
             })
             .ToList();
 

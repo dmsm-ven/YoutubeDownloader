@@ -48,6 +48,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <Button Command="{Binding AddItemCommand}" Grid.Column="0">
@@ -61,6 +62,12 @@
             </Button>
             <Button Command="{Binding StopCommand}" Grid.Column="3">
                 <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
+            </Button>
+            <Button Command="{Binding ClearAllCommand}" Grid.Column="4" HorizontalAlignment="Right">
+                <ma:PackIconFontAwesome Kind="TrashAltRegular" 
+                                                        Width="20"
+                                                        Height="20"
+                                                        Foreground="Red"></ma:PackIconFontAwesome>
             </Button>
         </Grid>
         <ProgressBar Grid.Row="2" Height="24"  Margin="2" 
@@ -134,7 +141,7 @@
                                 <Button Command="{Binding RemoveItemCommand}" Grid.Column="6" 
                                         Background="Transparent" 
                                         BorderThickness="0">
-                                    <ma:PackIconFontAwesome Kind="TimesCircleRegular" 
+                                    <ma:PackIconFontAwesome Kind="TrashAltRegular" 
                                                         Width="20"
                                                         Height="20"
                                                         Foreground="Red"></ma:PackIconFontAwesome>
