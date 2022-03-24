@@ -3,6 +3,7 @@ using System;
 
 namespace YoutubeDownloader;
 
+[Flags]
 public enum LoadStatus
 {
     None = 1,

@@ -105,7 +105,7 @@ public class MainWindowViewModel : ViewModelBase
             InProgress = false;
             WriteLog("Пауза", "Информация"); 
         }, e => Items.Count > 0 && InProgress == true);    
-        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => (InProgress.HasValue ? !InProgress.Value : false));         
+        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true);         
     }
 
     private bool CanStart(object arg)
