@@ -17,7 +17,7 @@ public class LoadStatusToFillColorConverter : IValueConverter
                     return Brushes.Transparent;
 
                 case LoadStatus.Success:
-                    return Brushes.ForestGreen;
+                    return new SolidColorBrush(Color.FromRgb(80, 200, 120)); // light green 
 
                 case LoadStatus.Downloading:
                     return Brushes.Silver;
@@ -26,7 +26,7 @@ public class LoadStatusToFillColorConverter : IValueConverter
                     return Brushes.Silver;
 
                 case LoadStatus.HasErrors:
-                    return Brushes.Olive;
+                    return new SolidColorBrush(Color.FromRgb(220, 20, 60)); // red (Crimson)
             }
         }
 

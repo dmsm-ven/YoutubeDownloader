@@ -6,10 +6,16 @@
         xmlns:vm="clr-namespace:YoutubeDownloader.ViewModels"
         xmlns:local="clr-namespace:YoutubeDownloader"
         xmlns:ma="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         MinWidth="500"
-        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=False}" 
-        Title="Youtube to MP3" Height="309" Width="626">
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=True}" 
+        Title="Youtube to MP3" Height="338" Width="876">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <Window.Resources>
         <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -58,7 +64,7 @@
                 <ma:PackIconFontAwesome Kind="KeyboardRegular"></ma:PackIconFontAwesome>
             </Button>
             <Button Command="{Binding StartCommand}" Grid.Column="2">
-                <ma:PackIconFontAwesome Kind="PlayCircleRegular"></ma:PackIconFontAwesome>
+                <ma:PackIconFontAwesome Kind="DownloadSolid"></ma:PackIconFontAwesome>
             </Button>
             <Button Command="{Binding StopCommand}" Grid.Column="3">
                 <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
@@ -89,7 +95,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="150" />
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>

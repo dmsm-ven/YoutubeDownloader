@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.11.0" />
     <PackageReference Include="MediaToolkit" Version="1.1.0.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="VideoLibrary" Version="3.1.9" />
     <PackageReference Include="YoutubeExtractor" Version="0.10.11" />
   </ItemGroup>

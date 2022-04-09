@@ -81,6 +81,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand StopCommand { get; }
     public ICommand PasteFromClipboardCommand { get; }
     public ICommand ClearAllCommand { get; }
+    public ICommand LoadedCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -88,6 +89,20 @@ public class MainWindowViewModel : ViewModelBase
         logItems = new ObservableCollection<string>();
         loader = new YoutubeToMp3Converter();
 
+        AddTestData();
+
+        AddItemCommand = new LambdaCommand((e) => AddItem(), e => InProgress.HasValue ? !InProgress.Value : true);
+        StartCommand = new LambdaCommand(Start, CanStart);
+        StopCommand = new LambdaCommand((e) => { InProgress = false; WriteLog("Пауза", "Информация"); }, e => Items.Count > 0 && InProgress == true);    
+        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true && IsKeyboardBufferContainsYoutubeUrl);
+        ClearAllCommand = new LambdaCommand(e => Items.Clear(), e => InProgress != true && Items.Count > 0);
+        LoadedCommand = new LambdaCommand(Loaded, e => true);
+       
+    }
+
+    private void Loaded(object obj)
+    {
+        Items.Clear();
         loader.DownloadPercentChanged += Loader_DownloadPercentChanged;
         loader.ItemStatusChanged += (o, e) =>
         {
@@ -96,38 +111,72 @@ public class MainWindowViewModel : ViewModelBase
             if (e.Status == LoadStatus.Success)
             {
                 WriteLog($"[{shortName}] загружен", "OK");
-            } else if (e.Status == LoadStatus.HasErrors)
+            }
+            else if (e.Status == LoadStatus.HasErrors)
             {
                 WriteLog($"[{shortName}] {e.Message}", "Ошибка");
-            } else
+            }
+            else
             {
                 WriteLog($"[{shortName}] статус изменен: {e.Status.ToString()}", "Информация");
             }
 
             Items.FirstOrDefault(i => i.Uri == e.Uri).LoadStatus = e.Status;
         };
-
-        AddItemCommand = new LambdaCommand((e) => AddItem(), e => InProgress.HasValue ? !InProgress.Value : true);
-        StartCommand = new LambdaCommand(Start, CanStart);
-        StopCommand = new LambdaCommand((e) => {
-            InProgress = false;
-            WriteLog("Пауза", "Информация"); 
-        }, e => Items.Count > 0 && InProgress == true);    
-        PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true && IsKeyboardBufferContainsYoutubeUrl);
-        ClearAllCommand = new LambdaCommand(ClearAll, e => InProgress != true && Items.Count > 0);
-
         ApplicationCommands.Paste.CanExecuteChanged += (o, e) =>
         {
-            IsKeyboardBufferContainsYoutubeUrl = Clipboard.GetText().Contains("https://www.youtube.com");
-            CommandManager.InvalidateRequerySuggested();
+            try
+            {
+                IsKeyboardBufferContainsYoutubeUrl = Clipboard.GetText().Contains("https://www.youtube.com");
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch
+            {
+
+            }
         };
     }
-
-    private void ClearAll(object obj)
+    private void AddTestData()
     {
-        Items.Clear();
-    }
+        Items.Add(new YoutubeDownloadItem()
+        {
+            Uri = "https://www.youtube.com/watch?v=Ut497CdCXVk",
+            FileName = "Alphaxone - Secret Path",
+            LoadStatus = LoadStatus.HasErrors,
+            ProgressPercentage = 0
+        });
 
+        Items.Add(new YoutubeDownloadItem()
+        {
+            Uri = "https://www.youtube.com/watch?v=oeU6_BZpYJg",
+            FileName = "systema-golosavanya",
+            LoadStatus = LoadStatus.None,
+            ProgressPercentage = 100
+        });
+
+        Items.Add(new YoutubeDownloadItem()
+        {
+            Uri = "https://www.youtube.com/watch?v=L8jBuIWcERA",
+            FileName = "macknack",
+            LoadStatus = LoadStatus.Downloading,
+            ProgressPercentage = 48
+        });
+        Items.Add(new YoutubeDownloadItem()
+        {
+            Uri = "https://www.youtube.com/watch?v=yPDAYv1-_Rw",
+            FileName = "Dahlia's Tears - The gate of Immortality",
+            LoadStatus = LoadStatus.Converting,
+            ProgressPercentage = 100
+        });
+        Items.Add(new YoutubeDownloadItem()
+        {
+            Uri = "https://www.youtube.com/watch?v=lu_T5_mJ-70",
+            FileName = "Dahlia's Tear - Across the Shifting Abyss",
+            LoadStatus = LoadStatus.Success,
+            ProgressPercentage = 100
+        });
+
+    }
     private bool CanStart(object arg)
     {
         return Items.Count > 0 && Items.Any(i => i.IsValidUri) && (InProgress != true);
