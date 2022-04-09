@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Input;
 using YoutubeDownloader.Infrastructure.Commands;
@@ -11,6 +12,7 @@ namespace YoutubeDownloader.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    readonly Timer timer;
     YoutubeToMp3Converter loader;
 
     ObservableCollection<YoutubeDownloadItem> items;
@@ -76,18 +78,35 @@ public class MainWindowViewModel : ViewModelBase
         set => Set(ref currentProgressValue, value);
     }
 
+    public bool IsTimerEnabled
+    {
+        get => timer.Enabled;
+        set
+        {
+            timer.Enabled = value;
+            if (timer.Enabled)
+            {
+                Timer_Elapsed(null, null);
+            }
+            RaisePropertyChanged();
+        }
+    }
+
     public ICommand AddItemCommand { get; }
     public ICommand StartCommand { get; }
     public ICommand StopCommand { get; }
     public ICommand PasteFromClipboardCommand { get; }
     public ICommand ClearAllCommand { get; }
     public ICommand LoadedCommand { get; }
+    public ICommand TimerLoadCommand { get; }
 
     public MainWindowViewModel()
     {
         Items = new ObservableCollection<YoutubeDownloadItem>();
         logItems = new ObservableCollection<string>();
         loader = new YoutubeToMp3Converter();
+        timer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
+        timer.Elapsed += Timer_Elapsed;
 
         AddTestData();
 
@@ -97,7 +116,21 @@ public class MainWindowViewModel : ViewModelBase
         PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true && IsKeyboardBufferContainsYoutubeUrl);
         ClearAllCommand = new LambdaCommand(e => Items.Clear(), e => InProgress != true && Items.Count > 0);
         LoadedCommand = new LambdaCommand(Loaded, e => true);
+        TimerLoadCommand = new LambdaCommand(e => IsTimerEnabled = !IsTimerEnabled, e => InProgress != true && Items.Count > 0);
        
+    }
+
+    private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        if(InProgress != true)
+        {
+            LogItems.Clear();
+            StartCommand.Execute(null);
+            if(LogItems.FirstOrDefault(i => i.Contains("загружен")) != null)
+            {
+                IsTimerEnabled = false;
+            }
+        }
     }
 
     private void Loaded(object obj)

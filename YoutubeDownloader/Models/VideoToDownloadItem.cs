@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Timers;
 using System.Windows.Input;
 using YoutubeDownloader.Infrastructure.Commands;
 
@@ -9,8 +10,8 @@ namespace YoutubeDownloader;
 public class YoutubeDownloadItem : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
     public event Action OnRemoveClicked;
+    public event Action OnTimerByTimerClicked;
 
     LoadStatus loadStatus;
     public LoadStatus LoadStatus
@@ -83,10 +84,13 @@ public class YoutubeDownloadItem : INotifyPropertyChanged
     }
 
     public ICommand RemoveItemCommand { get; }
+    public ICommand LoadByTimerCommand { get; }
     public YoutubeDownloadItem()
     {
         RemoveItemCommand = new LambdaCommand((e) => OnRemoveClicked?.Invoke(), e => true);
+        LoadByTimerCommand = new LambdaCommand((e) => OnTimerByTimerClicked?.Invoke(), e => true);
     }
+
 
     public bool IsValidUri => !string.IsNullOrWhiteSpace(Uri) && uri.StartsWith("https://www.youtube.com");
 }

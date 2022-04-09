@@ -54,6 +54,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -69,12 +70,19 @@
             <Button Command="{Binding StopCommand}" Grid.Column="3">
                 <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
             </Button>
-            <Button Command="{Binding ClearAllCommand}" Grid.Column="4" HorizontalAlignment="Right">
+            <!-- В процессе разработки - автоматический таймер повторения
+            <Button Command="{Binding TimerLoadCommand}" 
+                    Grid.Column="4">
+                <ma:PackIconFontAwesome Kind="ClockRegular"></ma:PackIconFontAwesome>
+            </Button>
+            -->
+            <Button Command="{Binding ClearAllCommand}" Grid.Column="5" HorizontalAlignment="Right">
                 <ma:PackIconFontAwesome Kind="TrashAltRegular" 
                                                         Width="20"
                                                         Height="20"
                                                         Foreground="Red"></ma:PackIconFontAwesome>
             </Button>
+
         </Grid>
         <ProgressBar Grid.Row="2" Height="24"  Margin="2" 
                      Minimum="0"
