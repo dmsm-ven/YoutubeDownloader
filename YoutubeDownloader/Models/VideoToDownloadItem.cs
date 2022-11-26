@@ -54,9 +54,12 @@ public class YoutubeDownloadItem : INotifyPropertyChanged
         get => progressPercentage;
         set
         {
-            progressPercentage = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(ProgressStatus));
+            if (progressPercentage != value)
+            {
+                progressPercentage = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(ProgressStatus));
+            }
         }
     }
     public string ProgressStatus

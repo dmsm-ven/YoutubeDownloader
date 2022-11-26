@@ -42,7 +42,7 @@
                     <Setter Property="Foreground" Value="Navy"/>
                     <Setter Property="FontWeight" Value="Medium"/>
                     <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderBrush" Value="LightBlue"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
                 </Style>
                 <Style TargetType="{x:Type ma:PackIconFontAwesome}">
                     <Setter Property="Width" Value="24"/>
@@ -70,12 +70,41 @@
             <Button Command="{Binding StopCommand}" Grid.Column="3">
                 <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
             </Button>
-            <!-- В процессе разработки - автоматический таймер повторения
+            <!-- В процессе разработки - автоматический таймер повторения -->
             <Button Command="{Binding TimerLoadCommand}" 
                     Grid.Column="4">
-                <ma:PackIconFontAwesome Kind="ClockRegular"></ma:PackIconFontAwesome>
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Padding" Value="4"/>
+                        <Setter Property="Margin" Value="2"/>
+                        <Setter Property="Foreground" Value="Navy"/>
+                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsTimerEnabled}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty='Opacity' 
+                                                             From='0' To='1' Duration='0:0:2' 
+                                                              AutoReverse='True' RepeatBehavior='Forever' />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard FillBehavior='Stop'>
+                                            <DoubleAnimation Storyboard.TargetProperty='Opacity' To='1' Duration='0:0:2' />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <ma:PackIconFontAwesome Kind="{Binding TimerIcon}"></ma:PackIconFontAwesome>
             </Button>
-            -->
             <Button Command="{Binding ClearAllCommand}" Grid.Column="5" HorizontalAlignment="Right">
                 <ma:PackIconFontAwesome Kind="TrashAltRegular" 
                                                         Width="20"

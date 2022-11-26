@@ -1,7 +1,9 @@
-﻿using System;
+﻿using MahApps.Metro.IconPacks;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -12,8 +14,7 @@ namespace YoutubeDownloader.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    readonly Timer timer;
-    YoutubeToMp3Converter loader;
+    readonly YoutubeToMp3Converter loader;
 
     ObservableCollection<YoutubeDownloadItem> items;
     public ObservableCollection<YoutubeDownloadItem> Items
@@ -78,19 +79,7 @@ public class MainWindowViewModel : ViewModelBase
         set => Set(ref currentProgressValue, value);
     }
 
-    public bool IsTimerEnabled
-    {
-        get => timer.Enabled;
-        set
-        {
-            timer.Enabled = value;
-            if (timer.Enabled)
-            {
-                Timer_Elapsed(null, null);
-            }
-            RaisePropertyChanged();
-        }
-    }
+    CancellationTokenSource cts;
 
     public ICommand AddItemCommand { get; }
     public ICommand StartCommand { get; }
@@ -105,38 +94,22 @@ public class MainWindowViewModel : ViewModelBase
         Items = new ObservableCollection<YoutubeDownloadItem>();
         logItems = new ObservableCollection<string>();
         loader = new YoutubeToMp3Converter();
-        timer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds);
-        timer.Elapsed += Timer_Elapsed;
 
         AddTestData();
 
         AddItemCommand = new LambdaCommand((e) => AddItem(), e => InProgress.HasValue ? !InProgress.Value : true);
         StartCommand = new LambdaCommand(Start, CanStart);
-        StopCommand = new LambdaCommand((e) => { InProgress = false; WriteLog("Пауза", "Информация"); }, e => Items.Count > 0 && InProgress == true);    
+        StopCommand = new LambdaCommand((e) => { InProgress = false; WriteLog("Пауза", "Информация"); }, e => Items.Count > 0 && InProgress == true);
         PasteFromClipboardCommand = new LambdaCommand(PasteFromClipboard, e => InProgress != true && IsKeyboardBufferContainsYoutubeUrl);
         ClearAllCommand = new LambdaCommand(e => Items.Clear(), e => InProgress != true && Items.Count > 0);
         LoadedCommand = new LambdaCommand(Loaded, e => true);
-        TimerLoadCommand = new LambdaCommand(e => IsTimerEnabled = !IsTimerEnabled, e => InProgress != true && Items.Count > 0);
-       
-    }
 
-    private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
-    {
-        if(InProgress != true)
-        {
-            LogItems.Clear();
-            StartCommand.Execute(null);
-            if(LogItems.FirstOrDefault(i => i.Contains("загружен")) != null)
-            {
-                IsTimerEnabled = false;
-            }
-        }
     }
 
     private void Loaded(object obj)
     {
         Items.Clear();
-        loader.DownloadPercentChanged += Loader_DownloadPercentChanged;
+
         loader.ItemStatusChanged += (o, e) =>
         {
             string shortName = Path.GetFileName(e.LocalName);
@@ -214,6 +187,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         return Items.Count > 0 && Items.Any(i => i.IsValidUri) && (InProgress != true);
     }
+
     private async void Start(object sender)
     {
         if (InProgress.HasValue && !InProgress.Value)
@@ -223,33 +197,22 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
+            LogItems.Clear();
             WriteLog("Начало", "Информация");
             InProgress = true;
             MaximumProgressValue = Items.Count;
             CurrentProgressValue = 0;
 
-            foreach (var item in Items)
-            {
-                ActiveItem = item;
-                string localPath = Path.Combine(SaveFolder, item.FileName);
+            cts = new CancellationTokenSource();
+            Progress<int> progress = new Progress<int>(v => CurrentProgressValue = v);
 
-                await loader.DownloadAndConvert(item.Uri, localPath);
-
-                CurrentProgressValue++;
-            }
+            await loader.DownloadAndConvertAll(Items, SaveFolder, progress, cts.Token);
 
             WriteLog("Конец", "Информация");
             InProgress = null;
             CurrentProgressValue = MaximumProgressValue;
         }
         CommandManager.InvalidateRequerySuggested();
-    }
-    private void Loader_DownloadPercentChanged(object? sender, int e)
-    {
-        if (ActiveItem != null)
-        {
-            ActiveItem.ProgressPercentage = e;
-        }
     }
     private void WriteLog(string message, string type)
     {
@@ -280,6 +243,9 @@ public class MainWindowViewModel : ViewModelBase
 
         lines.ForEach(l => AddItem(l.Uri, l.FileName));
 
-        MessageBox.Show($"Вставлено {lines.Count} строк", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+        if (lines.Count > 1)
+        {
+            MessageBox.Show($"Вставлено {lines.Count} строк", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 }
