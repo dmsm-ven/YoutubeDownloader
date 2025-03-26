@@ -1,16 +1,15 @@
-﻿using MahApps.Metro.IconPacks;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace YoutubeDownloader;
+namespace YoutubeDownloader.Infrastructure.Converters;
 
 public class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if(value is bool v)
+        if (value is bool v)
         {
             return v ? Visibility.Visible : Visibility.Collapsed;
         }

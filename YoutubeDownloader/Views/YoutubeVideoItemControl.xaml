@@ -1,0 +1,122 @@
+﻿<UserControl
+    x:Class="YoutubeDownloader.Views.YoutubeVideoItemControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:YoutubeDownloader.Views"
+    xmlns:ma="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="clr-namespace:YoutubeDownloader.Models"
+    d:Background="White"
+    d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False,
+                                     Type=model:YoutubeDownloadItem}"
+    mc:Ignorable="d">
+    <Border
+        Margin="2,2,2,6"
+        Padding="2,2,2,4"
+        BorderBrush="LightGray"
+        BorderThickness="0,0,0,1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Ellipse
+                Grid.Column="0"
+                Width="20"
+                Height="20"
+                Margin="2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
+                Stroke="LightGray"
+                StrokeThickness="1">
+                <Ellipse.Style>
+                    <Style>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LoadStatus}" Value="InProgress">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                AutoReverse="True"
+                                                RepeatBehavior="Forever"
+                                                Storyboard.TargetProperty="Opacity"
+                                                From="0"
+                                                To="1"
+                                                Duration="0:0:1" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard FillBehavior="Stop">
+                                            <DoubleAnimation
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="1"
+                                                Duration="0:0:1" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+            <TextBlock
+                Grid.Column="1"
+                Margin="12,2,2,2"
+                VerticalAlignment="Center"
+                Text="URL видео" />
+            <TextBox
+                Grid.Column="2"
+                Height="20"
+                Margin="2"
+                d:Text="https://youtube.com/watch?v=xxx"
+                Text="{Binding Uri}" />
+            <TextBlock
+                Grid.Column="3"
+                Margin="12,2,2,2"
+                VerticalAlignment="Center"
+                Text="Имя файла" />
+            <TextBox
+                Grid.Column="4"
+                Height="20"
+                Margin="2"
+                d:Text="Test file name"
+                Text="{Binding FileName}" />
+            <Grid Grid.Column="5">
+                <ProgressBar
+                    Height="20"
+                    Margin="2"
+                    Maximum="100"
+                    Minimum="0"
+                    Value="{Binding ProgressPercentage}" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Foreground="Blue"
+                    Text="{Binding ProgressStatus}" />
+            </Grid>
+            <Button
+                Grid.Column="6"
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{Binding RemoveItemCommand}">
+                <ma:PackIconFontAwesome
+                    Width="20"
+                    Height="20"
+                    Foreground="Red"
+                    Kind="TrashAltRegular" />
+            </Button>
+
+        </Grid>
+    </Border>
+</UserControl>

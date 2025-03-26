@@ -1,163 +1,125 @@
-﻿<Window x:Class="YoutubeDownloader.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:YoutubeDownloader.ViewModels"
-        xmlns:local="clr-namespace:YoutubeDownloader"
-        xmlns:ma="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-        mc:Ignorable="d"
-        MinWidth="500"
-        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=True}" 
-        Title="Youtube to MP3" Height="356" Width="913">
+﻿<Window
+    x:Class="YoutubeDownloader.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dt="clr-namespace:YoutubeDownloader.ViewModels.DesignTime"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:ma="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:v="clr-namespace:YoutubeDownloader.Views"
+    xmlns:vm="clr-namespace:YoutubeDownloader.ViewModels"
+    Title="Youtube to MP3"
+    Width="913"
+    Height="356"
+    MinWidth="500"
+    mc:Ignorable="d">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
-    <Window.Resources>
-        <local:LoadStatusToFillColorConverter x:Key="LoadStatusToFillColorConverter"/>
-        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0">
-            <TextBlock Text="Папка для сохранения" Margin="4 2 12 4" VerticalAlignment="Center"/>
-            <TextBox x:Name="txtSaveFolder" Margin="2"  Height="24" Text="{Binding SaveFolder, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock
+                Margin="4,2,12,4"
+                VerticalAlignment="Center"
+                Text="Папка для сохранения" />
+            <TextBox
+                x:Name="txtSaveFolder"
+                Height="24"
+                Margin="2"
+                Text="{Binding SaveFolder, UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button Command="{Binding AddItemCommand}" Grid.Column="0">
-                <ma:PackIconFontAwesome Kind="LinkSolid"></ma:PackIconFontAwesome>
+            <Button Grid.Column="0" Command="{Binding AddItemCommand}">
+                <ma:PackIconFontAwesome Kind="LinkSolid" />
             </Button>
-            <Button Command="{Binding PasteFromClipboardCommand}" Grid.Column="1">
-                <ma:PackIconFontAwesome Kind="KeyboardRegular"></ma:PackIconFontAwesome>
+            <Button Grid.Column="1" Command="{Binding PasteFromClipboardCommand}">
+                <ma:PackIconFontAwesome Kind="KeyboardRegular" />
             </Button>
-            <Button Command="{Binding StartCommand}" Grid.Column="2">
-                <ma:PackIconFontAwesome Kind="DownloadSolid"></ma:PackIconFontAwesome>
+            <Button Grid.Column="2" Command="{Binding StartCommand}">
+                <ma:PackIconFontAwesome Kind="DownloadSolid" />
             </Button>
-            <Button Command="{Binding StopCommand}" Grid.Column="3">
-                <ma:PackIconFontAwesome Kind="PauseCircleSolid"></ma:PackIconFontAwesome>
+            <Button Grid.Column="3" Command="{Binding StopCommand}">
+                <ma:PackIconFontAwesome Kind="PauseSolid" />
             </Button>
-            <Button Command="{Binding ClearAllCommand}" Grid.Column="5" 
-                    Style="{StaticResource TrashButtonStyle}"
-                    HorizontalAlignment="Right">
-                <ma:PackIconFontAwesome Kind="TrashAltRegular" 
-                                                        Width="20"
-                                                        Height="20"></ma:PackIconFontAwesome>
+            <Button
+                Grid.Column="5"
+                HorizontalAlignment="Right"
+                Command="{Binding ClearAllCommand}"
+                Style="{StaticResource TrashButtonStyle}">
+                <ma:PackIconFontAwesome
+                    Width="20"
+                    Height="20"
+                    Kind="TrashSolid" />
             </Button>
 
         </Grid>
-        <ProgressBar Grid.Row="2" Height="24"  Margin="2" 
-                     Minimum="0"
-                     Visibility="{Binding InProgress, Converter={StaticResource BoolToVisibilityConverter}}"
-                     Value="{Binding CurrentProgressValue}"
-                     Maximum="{Binding MaximumProgressValue}" />
-        <ScrollViewer Grid.Row="3"  
-                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
-                      Margin="2"
-                      Background="WhiteSmoke">
-            <ItemsControl x:Name="itemsControl" ItemsSource="{Binding Items}" BorderBrush="Navy" BorderThickness="1">
+        <ProgressBar
+            Grid.Row="2"
+            Height="24"
+            Margin="2"
+            Maximum="{Binding MaximumProgressValue}"
+            Minimum="0"
+            Visibility="{Binding InProgress, Converter={StaticResource BoolToVisibilityConverter}}"
+            Value="{Binding CurrentProgressValue}" />
+        <ScrollViewer
+            Grid.Row="3"
+            Margin="2"
+            Background="WhiteSmoke"
+            HorizontalScrollBarVisibility="Hidden"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+                x:Name="itemsControl"
+                d:DataContext="{d:DesignInstance Type=dt:DesignSource,
+                                                 IsDesignTimeCreatable=True}"
+                d:ItemsSource="{Binding DesignYoutubeDownloadItems}"
+                BorderBrush="Navy"
+                BorderThickness="1"
+                ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderThickness="0 0 0 1" BorderBrush="LightGray" Margin="2 2 2 6" Padding="2 2 2 4">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="150" />
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Ellipse Grid.Column="0" Margin="2" 
-                                     Fill="{Binding LoadStatus, Converter={StaticResource LoadStatusToFillColorConverter}}"
-                                     StrokeThickness="1"
-                                     Width="20" Height="20"
-                                         VerticalAlignment="Center"
-                                         HorizontalAlignment="Center"
-                                     Stroke="LightGray">
-                                    <Ellipse.Style>
-                                        <Style>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding LoadStatus}" Value="InProgress">
-                                                    <DataTrigger.EnterActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetProperty='Opacity' From='0' To='1' Duration='0:0:1' 
-                                                                                 AutoReverse='True' RepeatBehavior='Forever' />
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.EnterActions>
-                                                    <DataTrigger.ExitActions>
-                                                        <BeginStoryboard>
-                                                            <Storyboard FillBehavior='Stop'>
-                                                                <DoubleAnimation Storyboard.TargetProperty='Opacity' To='1' Duration='0:0:1' />
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </DataTrigger.ExitActions>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Grid.Column="1" Text="URL видео" Margin="12 2 2 2" VerticalAlignment="Center"/>
-                                <TextBox Grid.Column="2" Text="{Binding Uri}" Margin="2" Height="20"/>
-                                <TextBlock Grid.Column="3" Text="Имя файла" Margin="12 2 2 2" VerticalAlignment="Center"/>
-                                <TextBox Grid.Column="4" Text="{Binding FileName}"  Margin="2" Height="20"/>
-                                <Grid Grid.Column="5">
-                                    <ProgressBar  Margin="2" Height="20" Minimum="0" Maximum="100"
-                                             Value="{Binding ProgressPercentage}"/>
-                                    <TextBlock Text="{Binding ProgressStatus}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               FontSize="12"
-                                               Foreground="Blue"></TextBlock>
-                                </Grid>
-                                <Button Command="{Binding RemoveItemCommand}" Grid.Column="6" 
-                                        Background="Transparent" 
-                                        BorderThickness="0">
-                                    <ma:PackIconFontAwesome Kind="TrashAltRegular" 
-                                                        Width="20"
-                                                        Height="20"
-                                                        Foreground="Red"></ma:PackIconFontAwesome>
-                                </Button>
-
-                            </Grid>
-                        </Border>
+                        <v:YoutubeVideoItemControl DataContext="{Binding}" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
 
-        <GridSplitter Grid.Row="4" Background="DarkGray" Height="2" 
-                      Margin="0 2 0 2"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"></GridSplitter>
-        <ListBox Grid.Column="1" Grid.RowSpan="4" Grid.Row="5" 
-                 MinHeight="25"
-                 Foreground="Yellow"     
-                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                 Background="DarkBlue" ItemsSource="{Binding LogItems}" 
-                 Margin="2"/>
+        <GridSplitter
+            Grid.Row="4"
+            Height="2"
+            Margin="0,2,0,2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="DarkGray" />
+        <ListBox
+            Grid.Row="5"
+            Grid.RowSpan="4"
+            Grid.Column="1"
+            MinHeight="25"
+            Margin="2"
+            Background="DarkBlue"
+            Foreground="Yellow"
+            ItemsSource="{Binding LogItems}"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
     </Grid>
 </Window>
